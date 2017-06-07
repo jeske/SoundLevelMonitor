@@ -1,0 +1,10 @@
+
+
+# gitignore
+
+*.suo
+
+SoundLevelMonitorWF/SoundLevelMonitor/bin/
+SoundLevelMonitorWF/SoundLevelMonitor/obj/
+SoundLevelMonitorWPF/SoundLevelMonitor/bin/
+SoundLevelMonitorWPF/SoundLevelMonitor/obj/
