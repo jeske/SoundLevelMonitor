@@ -70,14 +70,22 @@ namespace SoundManager
             Redraw();
             Source = backingStore;
 
-            // this.LayoutUpdated += AudioLevelsUIElement_LayoutUpdated;
+           
+            this.SizeChanged += AudioLevelsUIElement_SizeChanged;            
         }
 
-        private void AudioLevelsUIElement_LayoutUpdated(object sender, EventArgs e) {
-            if (this.RenderSize.Width != 0 && this.RenderSize.Width != backingStore.PixelWidth) {
-                backingStore = new WriteableBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Bgr24, null);
-                Redraw();
-                Source = backingStore;
+        
+
+        private void AudioLevelsUIElement_SizeChanged(object sender, EventArgs e) {            
+            if (this.RenderSize.Width != backingStore.PixelWidth ||
+                this.RenderSize.Height != backingStore.PixelHeight) {
+                if (this.RenderSize.Height == 0 && this.RenderSize.Width == 0) {
+                    Source = backingStore = null;
+                } else {
+                    backingStore = new WriteableBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Bgr24, null);
+                    Redraw();
+                    Source = backingStore;  
+                }
             }
         }
 
@@ -126,8 +134,10 @@ namespace SoundManager
             }
         }
 
-        private void Redraw() {
+        private void Redraw() {            
             var wb = backingStore;
+            if (wb == null) { return; } // nothing to do
+
             wb.Lock();
             var bmp = new SD.Bitmap(wb.PixelWidth, wb.PixelHeight,
                                                  wb.BackBufferStride,
