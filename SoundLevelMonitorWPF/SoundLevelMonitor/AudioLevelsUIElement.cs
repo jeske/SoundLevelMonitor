@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (C) 2017 by David W. Jeske
+// Released to the Public Domain
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
