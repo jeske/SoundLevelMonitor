@@ -69,6 +69,16 @@ namespace SoundManager
             backingStore = new WriteableBitmap(500,500,97,97,PixelFormats.Bgr24,null);
             Redraw();
             Source = backingStore;
+
+            // this.LayoutUpdated += AudioLevelsUIElement_LayoutUpdated;
+        }
+
+        private void AudioLevelsUIElement_LayoutUpdated(object sender, EventArgs e) {
+            if (this.RenderSize.Width != 0 && this.RenderSize.Width != backingStore.PixelWidth) {
+                backingStore = new WriteableBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Bgr24, null);
+                Redraw();
+                Source = backingStore;
+            }
         }
 
         private void DispatcherTimer_Tick(object sender, EventArgs e) {
@@ -77,7 +87,6 @@ namespace SoundManager
             // this.InvalidateVisual();
             Redraw();
         }
-
 
         // this feels expensive, but i'm not sure how else to do it
         private double computeMaxSampleLastN(IDictionary<int, AudioLevelMonitor.SampleInfo> sampleMap, int lastN) {
