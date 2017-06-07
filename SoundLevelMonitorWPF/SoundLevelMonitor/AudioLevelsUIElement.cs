@@ -46,7 +46,7 @@ namespace SoundManager
     public class AudioLevelsUIElement : Image
     {
         public AudioLevelMonitor AudioMonitor { get; set; }
-        System.Windows.Threading.DispatcherTimer dispatcherTimer;
+        
         List<SD.Pen> pens = new List<SD.Pen>();
         Dictionary<int,SD.Pen> pidToPen = new Dictionary<int,SD.Pen>();
         WriteableBitmap backingStore;
@@ -54,11 +54,8 @@ namespace SoundManager
         SD.Pen greenPen = new SD.Pen(SD.Brushes.Green, 0.5f);
 
 
-        public AudioLevelsUIElement() {
-            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10); // 10ms
-            dispatcherTimer.Start();
+        public AudioLevelsUIElement() {        
+            CompositionTarget.Rendering += CompositionTarget_Rendering;
 
             // populate pens
             pens.Add(new SD.Pen(SD.Brushes.Crimson,1.0f));
@@ -69,12 +66,13 @@ namespace SoundManager
             backingStore = new WriteableBitmap(500,500,97,97,PixelFormats.Bgr24,null);
             Redraw();
             Source = backingStore;
-
            
             this.SizeChanged += AudioLevelsUIElement_SizeChanged;            
         }
 
-        
+        private void CompositionTarget_Rendering(object sender, EventArgs e) {
+            Redraw();
+        }
 
         private void AudioLevelsUIElement_SizeChanged(object sender, EventArgs e) {            
             if (this.RenderSize.Width != backingStore.PixelWidth ||
@@ -87,13 +85,6 @@ namespace SoundManager
                     Source = backingStore;  
                 }
             }
-        }
-
-        private void DispatcherTimer_Tick(object sender, EventArgs e) {
-            // this is really expensive, because it causes re-layout, but it's the only way to
-            // get a UIElement to repaint in WPF...
-            // this.InvalidateVisual();
-            Redraw();
         }
 
         // this feels expensive, but i'm not sure how else to do it
