@@ -7,6 +7,8 @@ This is a simple tool I cooked up so I could figure out which app was responsibl
 
 There are WPF and Windows.Forms versions. 
 
-Currently, only the Windows Forms version works properly and has reasonable performance.
+It has turned into a bit of a WPF challenge. It's hard to match GDI's performance using WPF's retained mode drawing. It's also hard (impossible?) to achieve the same crisp single pixel lines that GDI draws in WPF.
+
+Here is the Windows.Forms version:
 
 ![SoundLevelMonitor Screenshot](https://raw.githubusercontent.com/jeske/SoundLevelMonitor/master/info/SoundLevelMonitor-screenshot.png)
