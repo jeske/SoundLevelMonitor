@@ -9,7 +9,7 @@
     <DockPanel LastChildFill="True">
         <local:AudioLevelsUIElement 
             x:Name="audioLevelUI"
-            Stretch="Fill"
+            
             />
     </DockPanel>
 </Window>

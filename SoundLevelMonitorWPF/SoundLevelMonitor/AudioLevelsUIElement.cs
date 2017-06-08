@@ -42,7 +42,7 @@ namespace SoundManager
     // or there is the WriteableBitmapEx extension
     // https://github.com/teichgraf/WriteableBitmapEx/
 
-    public class AudioLevelsUIElement : Image
+    public class AudioLevelsUIElement : UIElement
     {
         public AudioLevelMonitor AudioMonitor { get; set; }        
         List<Pen> pens = new List<Pen>();
@@ -51,18 +51,18 @@ namespace SoundManager
                 
         public AudioLevelsUIElement() {            
             // populate pens
-            pens.Add(new Pen(Brushes.AliceBlue, 1.0));
             pens.Add(new Pen(Brushes.Crimson,1.0));
             pens.Add(new Pen(Brushes.DarkKhaki,1.0));
             pens.Add(new Pen(Brushes.FloralWhite,1.0));
             pens.Add(new Pen(Brushes.HotPink,1.0));
 
-            Source = backingStore = new RenderTargetBitmap(200,200,97,97,PixelFormats.Pbgra32);
+            backingStore = new RenderTargetBitmap(200,200,97,97,PixelFormats.Pbgra32);
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
-            SizeChanged += AudioLevelsUIElement_SizeChanged;
+            // SizeChanged += AudioLevelsUIElement_SizeChanged;
         }
 
+#if false
         private void AudioLevelsUIElement_SizeChanged(object sender, SizeChangedEventArgs e) {
             if (RenderSize.Width == 0) {
                 Source = backingStore = null;
@@ -71,6 +71,7 @@ namespace SoundManager
                     new RenderTargetBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Pbgra32);
             }
         }
+#endif
 
         private void CompositionTarget_Rendering(object sender, EventArgs e) {
             this.Render();
@@ -129,6 +130,13 @@ namespace SoundManager
             }
         }
 
+        protected override void OnRender(DrawingContext drawingContext) {
+            base.OnRender(drawingContext);
+            backingStore =
+                   new RenderTargetBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Pbgra32);
+            drawingContext.DrawImage(backingStore,new Rect(RenderSize));
+        }
+
         private void Render() {
             var drawingVisual = new DrawingVisual();
             var drawingContext = drawingVisual.RenderOpen();
@@ -137,9 +145,7 @@ namespace SoundManager
             backingStore.Render(drawingVisual);
         }
 
-        private void Render(DrawingContext drawingContext) {
-            base.OnRender(drawingContext);            
-                        
+        private void Render(DrawingContext drawingContext) {                                              
             // if we have no AudioMonitor draw a blank grid
             if (AudioMonitor == null) {
                 RenderVUMeterGrid(drawingContext,1.0);
@@ -187,7 +193,7 @@ namespace SoundManager
                         FlowDirection.LeftToRight,
                         typeface, 12, Brushes.White);
 
-                y_start = formattedText.Height;
+                y_start += formattedText.Height;
                 drawingContext.DrawText(formattedText,new Point(5,y_start));
                 y_start += 10; // vertical padding
             }
