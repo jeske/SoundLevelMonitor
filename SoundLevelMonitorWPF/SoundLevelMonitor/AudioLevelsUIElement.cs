@@ -47,8 +47,9 @@ namespace SoundManager
         public AudioLevelMonitor AudioMonitor { get; set; }        
         List<Pen> pens = new List<Pen>();
         Dictionary<int,Pen> pidToPen = new Dictionary<int,Pen>();
-        RenderTargetBitmap backingStore;
-                
+        DrawingGroup backingStore;
+        Pen greenPen = new Pen(Brushes.Green, 0.5);
+
         public AudioLevelsUIElement() {            
             // populate pens
             pens.Add(new Pen(Brushes.Crimson,1.0));
@@ -56,11 +57,24 @@ namespace SoundManager
             pens.Add(new Pen(Brushes.FloralWhite,1.0));
             pens.Add(new Pen(Brushes.HotPink,1.0));
 
-            backingStore = new RenderTargetBitmap(200,200,97,97,PixelFormats.Pbgra32);
+            foreach (var pen in pens) {
+                pen.Freeze();
+            }
+            greenPen.Freeze();
+
+            backingStore = new DrawingGroup();            
+            Render();
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
-            // SizeChanged += AudioLevelsUIElement_SizeChanged;
+            // SizeChanged += AudioLevelsUIElement_SizeChanged;            
+            
         }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo info) {
+            base.OnRenderSizeChanged(info);
+            Render();
+        }
+
 
 #if false
         private void AudioLevelsUIElement_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -83,7 +97,7 @@ namespace SoundManager
                 new Rect(this.RenderSize));
 
             // draw gridlines every 0.1
-            var greenPen = new Pen(Brushes.Green,0.5);            
+                       
             for(double x=0.0; x<maxSample;x+=0.01) {
                 var y = this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample));
                 drawingContext.DrawLine(greenPen,
@@ -131,18 +145,15 @@ namespace SoundManager
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
-            base.OnRender(drawingContext);
-            backingStore =
-                   new RenderTargetBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Pbgra32);
-            drawingContext.DrawImage(backingStore,new Rect(RenderSize));
+            Render();
+            base.OnRender(drawingContext);            
+            drawingContext.DrawDrawing(backingStore);
         }
 
-        private void Render() {
-            var drawingVisual = new DrawingVisual();
-            var drawingContext = drawingVisual.RenderOpen();
+        private void Render() {            
+            var drawingContext = backingStore.Open();
             Render(drawingContext);
-            drawingContext.Close();
-            backingStore.Render(drawingVisual);
+            drawingContext.Close();            
         }
 
         private void Render(DrawingContext drawingContext) {                                              
@@ -185,13 +196,13 @@ namespace SoundManager
             double y_start = 5;
             var typeface = new Typeface("Ariel");
             foreach(int pid in pidList) {
-                
+                var brush = penForPid(pid).Brush;
                 var formattedText = 
                     new FormattedText(
                         activeSamples[pid].WindowTitle,
                         CultureInfo.CurrentUICulture,
                         FlowDirection.LeftToRight,
-                        typeface, 12, Brushes.White);
+                        typeface, 12, brush);
 
                 y_start += formattedText.Height;
                 drawingContext.DrawText(formattedText,new Point(5,y_start));
