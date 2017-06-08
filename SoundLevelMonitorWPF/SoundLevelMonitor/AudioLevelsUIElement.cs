@@ -187,6 +187,9 @@ namespace SoundManager
                 string name = kvp.Value.WindowTitle;
                 double[] samples = kvp.Value.samples;
 
+                StreamGeometry geometry = new StreamGeometry();
+                StreamGeometryContext gc = geometry.Open();
+
                 double last_sample = samples[samples.Length-1];
                 for (int x=0;x<samples.Length-1;x++) {
                     if (x > (int)this.RenderSize.Width) {
@@ -199,18 +202,18 @@ namespace SoundManager
 
                     // is this faster than DrawLine() ??? 
                     { 
-                        StreamGeometry geometry = new StreamGeometry();
-                        StreamGeometryContext gc = geometry.Open();
                         gc.BeginFigure(p1, false, false);
                         gc.LineTo(p2,true, true);
-                        gc.Close();
-                        geometry.Freeze();
-                        drawingContext.DrawGeometry(null, audioLevelPen,geometry);
                     }
 
                     last_sample = sample;
                 }
                 next_process: ;
+
+                gc.Close();
+                geometry.Freeze();
+                drawingContext.DrawGeometry(null, audioLevelPen, geometry);
+
             }
 
             // and finally draw the legend
