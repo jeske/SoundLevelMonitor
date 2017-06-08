@@ -110,6 +110,7 @@ namespace SoundLevelMonitor
             // PaintMe(pe.Graphics);
 
             using (var buffer = new BufferedGraphicsContext()) {
+                buffer.MaximumBuffer = ClientSize;
                 using (var bufferedGraphics = buffer.Allocate(pe.Graphics, ClientRectangle)) {
                     PaintMe(bufferedGraphics.Graphics);
                     bufferedGraphics.Render();
