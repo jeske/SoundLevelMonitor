@@ -20,6 +20,7 @@ namespace SoundLevelMonitor
 
 
         public AudioLevelsUIControl() {
+            DoubleBuffered = true;
             dispatcherTimer = new Timer();
             dispatcherTimer.Tick += DispatcherTimer_Tick;
             dispatcherTimer.Interval = 100;            
@@ -103,24 +104,12 @@ namespace SoundLevelMonitor
                 nextPenToAllocate = (nextPenToAllocate + 1) % (pens.Count - 1);
                 return allocatedPen;
             }
-        }
+        }      
 
         protected override void OnPaint(PaintEventArgs pe) {
-            // direct
-            // PaintMe(pe.Graphics);
+            base.OnPaint(pe);
+            var g = pe.Graphics;
 
-            using (var buffer = new BufferedGraphicsContext()) {
-                buffer.MaximumBuffer = ClientSize;
-                using (var bufferedGraphics = buffer.Allocate(pe.Graphics, ClientRectangle)) {
-                    PaintMe(bufferedGraphics.Graphics);
-                    bufferedGraphics.Render();
-                }
-                
-            }            
-        }
-
-
-        private void PaintMe(System.Drawing.Graphics g) {
             // if we have no AudioMonitor draw a blank grid
             if (AudioMonitor == null) {
                 RenderVUMeterGrid(g, 1.0);
