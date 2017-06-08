@@ -48,9 +48,11 @@ namespace SoundManager
         List<Pen> pens = new List<Pen>();
         Dictionary<int,Pen> pidToPen = new Dictionary<int,Pen>();
         DrawingGroup backingStore;
-        Pen greenPen = new Pen(Brushes.Green, 0.5);
+        Pen greenPen = new Pen(Brushes.Green, 1.0);
 
-        public AudioLevelsUIElement() {            
+        public AudioLevelsUIElement() {
+            // RenderOptions.SetEdgeMode((DependencyObject)this, EdgeMode.Aliased);
+
             // populate pens
             pens.Add(new Pen(Brushes.Crimson,1.0));
             pens.Add(new Pen(Brushes.DarkKhaki,1.0));
@@ -193,21 +195,50 @@ namespace SoundManager
             // http://csharphelper.com/blog/2015/04/render-text-easily-in-a-wpf-program-using-c/
             List<int> pidList = activeSamples.Keys.ToList();
             pidList.Sort();
-            double y_start = 5;
-            var typeface = new Typeface("Ariel");
-            foreach(int pid in pidList) {
-                var brush = penForPid(pid).Brush;
-                var formattedText = 
-                    new FormattedText(
-                        activeSamples[pid].WindowTitle,
-                        CultureInfo.CurrentUICulture,
-                        FlowDirection.LeftToRight,
-                        typeface, 12, brush);
+            var typeface = new Typeface("Ariel");            
+            // first figure out how tall it is
+            {
+                double y_start = 5;
+                double max_text_width = 0;
+                
+                foreach(int pid in pidList) {
+                    var brush = penForPid(pid).Brush;
+                    var formattedText = 
+                        new FormattedText(
+                            activeSamples[pid].WindowTitle,
+                            CultureInfo.CurrentUICulture,
+                            FlowDirection.LeftToRight,
+                            typeface, 12, brush);
 
-                y_start += formattedText.Height;
-                drawingContext.DrawText(formattedText,new Point(5,y_start));
-                y_start += 10; // vertical padding
+                    max_text_width = Math.Max(max_text_width,formattedText.Width);
+                    y_start += formattedText.Height;                    
+                    y_start += 10; // vertical padding
+                }                
+                // draw the box
+                drawingContext.DrawRectangle(
+                    Brushes.Black,greenPen,
+                    new Rect(5,10,max_text_width + 10,y_start));
             }
+
+            // Now draw the text
+            {
+                double y_start = 5;
+
+                foreach (int pid in pidList) {
+                    var brush = penForPid(pid).Brush;
+                    var formattedText =
+                        new FormattedText(
+                            activeSamples[pid].WindowTitle,
+                            CultureInfo.CurrentUICulture,
+                            FlowDirection.LeftToRight,
+                            typeface, 12, brush);
+
+                    y_start += formattedText.Height;
+                    drawingContext.DrawText(formattedText, new Point(10, y_start));
+                    y_start += 10; // vertical padding
+                }
+            }
+
 
         }
     }
