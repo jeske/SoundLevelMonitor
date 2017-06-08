@@ -51,7 +51,6 @@ namespace SoundManager
                 
         public AudioLevelsUIElement() {            
             // populate pens
-            pens.Add(new Pen(Brushes.AliceBlue, 1.0));
             pens.Add(new Pen(Brushes.Crimson,1.0));
             pens.Add(new Pen(Brushes.DarkKhaki,1.0));
             pens.Add(new Pen(Brushes.FloralWhite,1.0));
@@ -187,7 +186,7 @@ namespace SoundManager
                         FlowDirection.LeftToRight,
                         typeface, 12, Brushes.White);
 
-                y_start = formattedText.Height;
+                y_start += formattedText.Height;
                 drawingContext.DrawText(formattedText,new Point(5,y_start));
                 y_start += 10; // vertical padding
             }
