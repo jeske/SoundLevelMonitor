@@ -103,12 +103,23 @@ namespace SoundLevelMonitor
                 nextPenToAllocate = (nextPenToAllocate + 1) % (pens.Count - 1);
                 return allocatedPen;
             }
-        }        
-        
+        }
+
         protected override void OnPaint(PaintEventArgs pe) {
-            // base.OnPaint(pe);
-            var g = pe.Graphics;
-            
+            // direct
+            // PaintMe(pe.Graphics);
+
+            using (var buffer = new BufferedGraphicsContext()) {
+                using (var bufferedGraphics = buffer.Allocate(pe.Graphics, ClientRectangle)) {
+                    PaintMe(bufferedGraphics.Graphics);
+                    bufferedGraphics.Render();
+                }
+                
+            }            
+        }
+
+
+        private void PaintMe(System.Drawing.Graphics g) {
             // if we have no AudioMonitor draw a blank grid
             if (AudioMonitor == null) {
                 RenderVUMeterGrid(g, 1.0);
