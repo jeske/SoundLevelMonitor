@@ -72,10 +72,10 @@ namespace SoundManager
             
         }
 
-        protected override void OnRenderSizeChanged(SizeChangedInfo info) {
-            base.OnRenderSizeChanged(info);
-            Render();
-        }
+        // protected override void OnRenderSizeChanged(SizeChangedInfo info) {
+            // base.OnRenderSizeChanged(info);
+            // Render();
+        // }
 
 
 #if false
@@ -182,9 +182,21 @@ namespace SoundManager
                         goto next_process;
                     }
                     var sample = samples[samples.Length-(x+1)];
-                    drawingContext.DrawLine(audioLevelPen,
-                        new Point(this.RenderSize.Width-x,this.RenderSize.Height - (this.RenderSize.Height * (last_sample/maxSample))),
-                        new Point(this.RenderSize.Width-(x+1),this.RenderSize.Height - (this.RenderSize.Height * (sample/maxSample))));
+                    var p1 = new Point(this.RenderSize.Width - x, this.RenderSize.Height - (this.RenderSize.Height * (last_sample / maxSample)));
+                    var p2 = new Point(this.RenderSize.Width - (x + 1), this.RenderSize.Height - (this.RenderSize.Height * (sample / maxSample)));
+                    // drawingContext.DrawLine(audioLevelPen,p1, p2);
+
+                    // is this faster than DrawLine() ??? 
+                    { 
+                        StreamGeometry geometry = new StreamGeometry();
+                        StreamGeometryContext gc = geometry.Open();
+                        gc.BeginFigure(p1, false, false);
+                        gc.LineTo(p2,true, true);
+                        gc.Close();
+                        geometry.Freeze();
+                        drawingContext.DrawGeometry(null, audioLevelPen,geometry);
+                    }
+
                     last_sample = sample;
                 }
                 next_process: ;

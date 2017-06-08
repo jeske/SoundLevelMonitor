@@ -26,6 +26,7 @@ namespace SoundManager
 
         public MainWindow() {
             InitializeComponent();
+            Title = "SoundLevelMonitor - WPF";
 
             audioMonitor = new AudioLevelMonitor();
             
