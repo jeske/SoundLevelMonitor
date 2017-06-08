@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace SoundManager
 {
@@ -41,31 +42,38 @@ namespace SoundManager
     // or there is the WriteableBitmapEx extension
     // https://github.com/teichgraf/WriteableBitmapEx/
 
-    public class AudioLevelsUIElement : UIElement
+    public class AudioLevelsUIElement : Image
     {
-        public AudioLevelMonitor AudioMonitor { get; set; }
-        System.Windows.Threading.DispatcherTimer dispatcherTimer;
+        public AudioLevelMonitor AudioMonitor { get; set; }        
         List<Pen> pens = new List<Pen>();
         Dictionary<int,Pen> pidToPen = new Dictionary<int,Pen>();
+        RenderTargetBitmap backingStore;
                 
-        public AudioLevelsUIElement() {
-            dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
-            dispatcherTimer.Tick += DispatcherTimer_Tick;
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10); // 10ms
-            dispatcherTimer.Start();
-
+        public AudioLevelsUIElement() {            
             // populate pens
             pens.Add(new Pen(Brushes.AliceBlue, 1.0));
             pens.Add(new Pen(Brushes.Crimson,1.0));
             pens.Add(new Pen(Brushes.DarkKhaki,1.0));
             pens.Add(new Pen(Brushes.FloralWhite,1.0));
             pens.Add(new Pen(Brushes.HotPink,1.0));
+
+            Source = backingStore = new RenderTargetBitmap(200,200,97,97,PixelFormats.Pbgra32);
+
+            CompositionTarget.Rendering += CompositionTarget_Rendering;
+            SizeChanged += AudioLevelsUIElement_SizeChanged;
         }
 
-        private void DispatcherTimer_Tick(object sender, EventArgs e) {
-            // this is really expensive, because it causes re-layout, but it's the only way to
-            // get a UIElement to repaint in WPF...
-            this.InvalidateVisual();
+        private void AudioLevelsUIElement_SizeChanged(object sender, SizeChangedEventArgs e) {
+            if (RenderSize.Width == 0) {
+                Source = backingStore = null;
+            } else {
+                Source = backingStore = 
+                    new RenderTargetBitmap((int)RenderSize.Width, (int)RenderSize.Height, 97, 97, PixelFormats.Pbgra32);
+            }
+        }
+
+        private void CompositionTarget_Rendering(object sender, EventArgs e) {
+            this.Render();
         }
 
         private void RenderVUMeterGrid(DrawingContext drawingContext, double maxSample) {
@@ -121,7 +129,15 @@ namespace SoundManager
             }
         }
 
-        protected override void OnRender(DrawingContext drawingContext) {
+        private void Render() {
+            var drawingVisual = new DrawingVisual();
+            var drawingContext = drawingVisual.RenderOpen();
+            Render(drawingContext);
+            drawingContext.Close();
+            backingStore.Render(drawingVisual);
+        }
+
+        private void Render(DrawingContext drawingContext) {
             base.OnRender(drawingContext);            
                         
             // if we have no AudioMonitor draw a blank grid
@@ -155,7 +171,6 @@ namespace SoundManager
                 next_process: ;
             }
 
-#if false
             // and finally draw the legend
             // http://csharphelper.com/blog/2015/05/get-font-metrics-in-a-wpf-program-using-c/
             // http://csharphelper.com/blog/2015/04/render-text-easily-in-a-wpf-program-using-c/
@@ -176,7 +191,6 @@ namespace SoundManager
                 drawingContext.DrawText(formattedText,new Point(5,y_start));
                 y_start += 10; // vertical padding
             }
-#endif
 
         }
     }

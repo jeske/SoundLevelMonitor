@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <DockPanel LastChildFill="True">
-        <local:AudioLevelsUIElement x:Name="audioLevelUI"/>
+        <local:AudioLevelsUIElement 
+            x:Name="audioLevelUI"
+            Stretch="Fill"
+            />
     </DockPanel>
 </Window>
