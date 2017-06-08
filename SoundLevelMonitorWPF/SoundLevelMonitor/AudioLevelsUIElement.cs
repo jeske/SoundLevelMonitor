@@ -42,6 +42,9 @@ namespace SoundManager
     // or there is the WriteableBitmapEx extension
     // https://github.com/teichgraf/WriteableBitmapEx/
 
+    // how to make better quality lines
+    // https://stackoverflow.com/questions/22283687/how-to-make-wpf-lines-a-better-quality-drawing
+
     public class AudioLevelsUIElement : UIElement
     {
         public AudioLevelMonitor AudioMonitor { get; set; }        
@@ -51,7 +54,15 @@ namespace SoundManager
         Pen greenPen = new Pen(Brushes.Green, 1.0);
 
         public AudioLevelsUIElement() {
+            // this is pretty useless, as it makes some lines disappear!
             // RenderOptions.SetEdgeMode((DependencyObject)this, EdgeMode.Aliased);
+
+            // this doesn't seem to do anything
+            // RenderOptions.SetBitmapScalingMode((DependencyObject)this,BitmapScalingMode.HighQuality);
+            
+            // this helps make thin lines a little clearer
+            SnapsToDevicePixels = true;
+            
 
             // populate pens
             pens.Add(new Pen(Brushes.Crimson,1.0));
@@ -182,8 +193,8 @@ namespace SoundManager
                         goto next_process;
                     }
                     var sample = samples[samples.Length-(x+1)];
-                    var p1 = new Point(this.RenderSize.Width - x, this.RenderSize.Height - (this.RenderSize.Height * (last_sample / maxSample)));
-                    var p2 = new Point(this.RenderSize.Width - (x + 1), this.RenderSize.Height - (this.RenderSize.Height * (sample / maxSample)));
+                    var p1 = new Point(this.RenderSize.Width - x, (int)(this.RenderSize.Height - (this.RenderSize.Height * (last_sample / maxSample))));
+                    var p2 = new Point(this.RenderSize.Width - (x + 1), (int)(this.RenderSize.Height - (this.RenderSize.Height * (sample / maxSample))));
                     // drawingContext.DrawLine(audioLevelPen,p1, p2);
 
                     // is this faster than DrawLine() ??? 
