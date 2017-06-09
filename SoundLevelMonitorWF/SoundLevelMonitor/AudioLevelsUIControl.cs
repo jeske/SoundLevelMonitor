@@ -14,7 +14,7 @@ namespace SoundLevelMonitor
     {
         AudioLevelMonitor _audioMonitor;
         List<Pen> pens = new List<Pen>();
-        Dictionary<int, Pen> pidToPen = new Dictionary<int, Pen>();
+        Dictionary<string, Pen> _sessionIdToPen = new Dictionary<string, Pen>();
         Timer dispatcherTimer;
         Pen greenPen = new Pen(Brushes.Green, 0.5f);
 
@@ -74,7 +74,7 @@ namespace SoundLevelMonitor
         }
 
         // this feels expensive, but i'm not sure how else to do it
-        private double computeMaxSampleLastN(IDictionary<int, AudioLevelMonitor.SampleInfo> sampleMap, int lastN) {
+        private double computeMaxSampleLastN(IDictionary<string, AudioLevelMonitor.SampleInfo> sampleMap, int lastN) {
             double maxSample = 0.0;
             foreach (var kvp in sampleMap) {
                 var samples = kvp.Value.samples;
@@ -95,17 +95,17 @@ namespace SoundLevelMonitor
             return maxSample;
         }
         int nextPenToAllocate = -1;
-        private Pen penForPid(int pid) {
+        private Pen penForSessionId(string sessionId) {
             if (nextPenToAllocate < 0) {
                 nextPenToAllocate = Math.Abs((int)DateTime.Now.Ticks) % (pens.Count - 1);
             }
 
-            if (pidToPen.ContainsKey(pid)) {
-                return pidToPen[pid];
+            if (_sessionIdToPen.ContainsKey(sessionId)) {
+                return _sessionIdToPen[sessionId];
             }
             else {
                 // allocate a new pen
-                var allocatedPen = pidToPen[pid] = pens[nextPenToAllocate];
+                var allocatedPen = _sessionIdToPen[sessionId] = pens[nextPenToAllocate];
                 nextPenToAllocate = (nextPenToAllocate + 1) % (pens.Count - 1);
                 return allocatedPen;
             }
@@ -128,8 +128,8 @@ namespace SoundLevelMonitor
 
             // now draw the individual sample lines                        
             foreach (var kvp in activeSamples) {
-                Pen audioLevelPen = penForPid(kvp.Value.pid);
-                string name = kvp.Value.WindowTitle;
+                Pen audioLevelPen = penForSessionId(kvp.Value.sessionId);
+                string name = kvp.Value.SessionName;
                 double[] samples = kvp.Value.samples;
 
                 double last_sample = samples[samples.Length - 1];
@@ -151,16 +151,16 @@ namespace SoundLevelMonitor
             // and finally draw the legend
             // http://csharphelper.com/blog/2015/05/get-font-metrics-in-a-wpf-program-using-c/
             // http://csharphelper.com/blog/2015/04/render-text-easily-in-a-wpf-program-using-c/
-            List<int> pidList = activeSamples.Keys.ToList();
-            pidList.Sort();
+            List<string> sessionIdList = activeSamples.Keys.ToList();
+            sessionIdList.Sort();
             var font = SystemFonts.DefaultFont;
             // first time is to measure the height to draw the legend box
             {
                 float y_start = 5;
                 float max_label_width = 0;
 
-                foreach (int pid in pidList) {
-                    string name = activeSamples[pid].WindowTitle;            
+                foreach (var sessionId in sessionIdList) {
+                    string name = activeSamples[sessionId].SessionName;            
                     var measure = g.MeasureString(name, font);
                     y_start += measure.Height;             
                     max_label_width = Math.Max(max_label_width,measure.Width);
@@ -176,9 +176,9 @@ namespace SoundLevelMonitor
             {
                 float y_start = 5;
 
-                foreach (int pid in pidList) {
-                    string name = activeSamples[pid].WindowTitle;
-                    Pen pen = this.penForPid(pid);
+                foreach (var sessionId in sessionIdList) {
+                    string name = activeSamples[sessionId].SessionName;
+                    Pen pen = this.penForSessionId(sessionId);
                     var brush = pen.Brush;
 
                     var measure = g.MeasureString(name,font);

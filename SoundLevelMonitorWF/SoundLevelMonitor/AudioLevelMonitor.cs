@@ -12,8 +12,8 @@ namespace SoundLevelMonitor
     {
         System.Timers.Timer dispatchingTimer;
         public double interval_ms = 50;
-        IDictionary<int, string> pidToWindowTitle = new Dictionary<int, string>();
-        IDictionary<int, List<double>> pidToAudioSamples = new Dictionary<int, List<double>>();
+        IDictionary<string, SampleInfo> sessionIdToInfo = new Dictionary<string, SampleInfo>();
+        IDictionary<string, List<double>> sessionIdToAudioSamples = new Dictionary<string, List<double>>();
         int maxSamplesToKeep = 1000;
 
         public AudioLevelMonitor() {
@@ -50,21 +50,23 @@ namespace SoundLevelMonitor
 
         public struct SampleInfo
         {
+            public string sessionId;
             public int pid;
-            public string WindowTitle;
+            public string SessionName;
             public double[] samples;
         }
 
 
-        public IDictionary<int, SampleInfo> GetActiveSamples() {
-            var outputDict = new Dictionary<int, AudioLevelMonitor.SampleInfo>();
+        public IDictionary<string, SampleInfo> GetActiveSamples() {
+            var outputDict = new Dictionary<string, AudioLevelMonitor.SampleInfo>();
             lock (this) {
-                foreach (var kvp in pidToAudioSamples) {
-                    var info = new SampleInfo();
-                    info.pid = kvp.Key;
-                    info.WindowTitle = pidToWindowTitle[kvp.Key];
-                    info.samples = pidToAudioSamples[kvp.Key].ToArray();
-                    outputDict[info.pid] = info;
+                foreach (var kvp in sessionIdToInfo) {
+
+                    var info = kvp.Value;
+                    if (sessionIdToAudioSamples.ContainsKey(info.sessionId)) {
+                        info.samples = sessionIdToAudioSamples[info.sessionId].ToArray();
+                        outputDict[info.sessionId] = info;
+                    }
                 }
             }
             return outputDict;
@@ -72,29 +74,37 @@ namespace SoundLevelMonitor
 
         public void CheckAudioLevels() {
             lock (this) {
-                var seenPids = new HashSet<int>();
+                var seenPids = new HashSet<string>();
                 using (var sessionManager = GetDefaultAudioSessionManager2(DataFlow.Render)) {
                     using (var sessionEnumerator = sessionManager.GetSessionEnumerator()) {
                         foreach (var session in sessionEnumerator) {
                             using (var audioSessionControl2 = session.QueryInterface<AudioSessionControl2>()) {
                                 var process = audioSessionControl2.Process;
 
+                                string sessionid = audioSessionControl2.SessionIdentifier;
                                 int pid = audioSessionControl2.ProcessID;
-                                string name = process.MainWindowTitle;
+                                string name = null;
+                                name = audioSessionControl2.DisplayName;
+                                if (name == null || name == "") { name = process.MainWindowTitle; }
                                 if (name == null || name == "") { name = process.ProcessName; }
                                 if (name == null || name == "") { name = "--unnamed--"; }
                                 
-                                pidToWindowTitle[pid] = name;
+                                var sessionInfo = new SampleInfo();
+                                sessionInfo.sessionId = sessionid;
+                                sessionInfo.pid = pid;
+                                sessionInfo.SessionName = name;
+
+                                sessionIdToInfo[sessionid] = sessionInfo;
                                 
                                 using (var audioMeterInformation = session.QueryInterface<AudioMeterInformation>()) {
                                     var value = audioMeterInformation.GetPeakValue();
                                     if (value != 0) {
                                         if (process != null) {
-                                            seenPids.Add(pid);
+                                            seenPids.Add(sessionid);
                                             List<double> samples;
-                                            if (!pidToAudioSamples.TryGetValue(pid, out samples)) {
+                                            if (!sessionIdToAudioSamples.TryGetValue(sessionid, out samples)) {
                                                 samples = new List<double>();
-                                                pidToAudioSamples[pid] = samples;
+                                                sessionIdToAudioSamples[sessionid] = samples;
                                             }
                                             var val = audioMeterInformation.GetPeakValue();
                                             samples.Add(val);
@@ -113,8 +123,8 @@ namespace SoundLevelMonitor
                     }
                 }
                 // before we are done, we need to add samples to anyone we didn't see
-                var deleteSamplesForPids = new HashSet<int>();
-                foreach (var kvp in pidToAudioSamples) {
+                var deleteSamplesForPids = new HashSet<string>();
+                foreach (var kvp in sessionIdToAudioSamples) {
                     if (!seenPids.Contains(kvp.Key)) {
                         kvp.Value.Add(0.0);
                         truncateSamples(kvp.Value);
@@ -123,8 +133,8 @@ namespace SoundLevelMonitor
                         }
                     }
                 }
-                foreach (var pid in deleteSamplesForPids) {
-                    pidToAudioSamples.Remove(pid);
+                foreach (var sessionid in deleteSamplesForPids) {
+                    sessionIdToAudioSamples.Remove(sessionid);
                 }
             } // lock
             System.GC.Collect();
