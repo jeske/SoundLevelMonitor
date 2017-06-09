@@ -79,15 +79,11 @@ namespace SoundManager
                                 var process = audioSessionControl2.Process;
 
                                 int pid = audioSessionControl2.ProcessID;
-                                var windowTitle = process.ProcessName;
-                                if (windowTitle != null && windowTitle != "") {
-                                    pidToWindowTitle[pid] = windowTitle;
-                                }
-                                else {
-                                    if (!pidToWindowTitle.ContainsKey(pid)) {
-                                        pidToWindowTitle[pid] = "--unnamed--";
-                                    }
-                                }
+                                string name = process.MainWindowTitle;
+                                if (name == null || name == "") { name = process.ProcessName; }
+                                if (name == null || name == "") { name = "--unnamed--"; }
+
+                                pidToWindowTitle[pid] = name;
 
                                 using (var audioMeterInformation = session.QueryInterface<AudioMeterInformation>())
                                 {

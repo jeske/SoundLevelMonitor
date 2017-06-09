@@ -62,13 +62,18 @@ namespace SoundManager
             
             // this helps make thin lines a little clearer
             SnapsToDevicePixels = true;
-            
+
 
             // populate pens
-            pens.Add(new Pen(Brushes.Crimson,1.0));
-            pens.Add(new Pen(Brushes.DarkKhaki,1.0));
-            pens.Add(new Pen(Brushes.FloralWhite,1.0));
-            pens.Add(new Pen(Brushes.HotPink,1.0));
+            pens.Add(new Pen(Brushes.Crimson, 1.0f));
+            pens.Add(new Pen(Brushes.DarkKhaki, 1.0f));
+            pens.Add(new Pen(Brushes.FloralWhite, 1.0f));
+            pens.Add(new Pen(Brushes.HotPink, 1.0f));
+            pens.Add(new Pen(Brushes.Yellow, 1.0f));
+            pens.Add(new Pen(Brushes.Lavender, 1.0f));
+            pens.Add(new Pen(Brushes.Cyan, 1.0f));
+            pens.Add(new Pen(Brushes.Maroon, 1.0f));
+
 
             foreach (var pen in pens) {
                 pen.Freeze();

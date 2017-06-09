@@ -31,6 +31,11 @@ namespace SoundLevelMonitor
             pens.Add(new Pen(Brushes.DarkKhaki, 1.0f));
             pens.Add(new Pen(Brushes.FloralWhite, 1.0f));
             pens.Add(new Pen(Brushes.HotPink, 1.0f));
+            pens.Add(new Pen(Brushes.Yellow, 1.0f));
+            pens.Add(new Pen(Brushes.Lavender, 1.0f));
+            pens.Add(new Pen(Brushes.Cyan, 1.0f));
+            pens.Add(new Pen(Brushes.Maroon, 1.0f));
+
 
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
