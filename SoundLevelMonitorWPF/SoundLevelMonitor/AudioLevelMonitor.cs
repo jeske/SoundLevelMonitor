@@ -66,11 +66,15 @@ namespace SoundLevelMonitorWPF
             return outputDict;
         }
 
+        AudioSessionManager2 sessionManager;
         public void CheckAudioLevels() {
             lock (this) {
                 var seenPids = new HashSet<int>();
-                using (var sessionManager = GetDefaultAudioSessionManager2(DataFlow.Render))
-                {
+                try {
+                    if (sessionManager == null) {
+                        sessionManager = GetDefaultAudioSessionManager2(DataFlow.Render);
+                    }
+                    
                     using (var sessionEnumerator = sessionManager.GetSessionEnumerator())
                     {
                         foreach (var session in sessionEnumerator)
@@ -111,6 +115,10 @@ namespace SoundLevelMonitorWPF
                             }
                         }
                     }
+                
+                } catch (CoreAudioAPIException e) {
+                    Console.WriteLine("AudioLevelMonitor exception: " + e.ToString());
+                    return;
                 }
                 // before we are done, we need to add samples to anyone we didn't see
                 var deleteSamplesForPids = new HashSet<int>();
