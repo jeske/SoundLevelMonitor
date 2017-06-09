@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using CSCore.CoreAudioAPI;
 
-namespace SoundManager
+namespace SoundLevelMonitorWPF
 {
     public class AudioLevelMonitor
     {

@@ -13,7 +13,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace SoundManager
+namespace SoundLevelMonitorWPF
 {
     // https://stackoverflow.com/questions/3952887/gdi-like-drawing-in-wpf
 
