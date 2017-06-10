@@ -119,10 +119,10 @@ namespace SoundLevelMonitorWPF
             
             for(double x=0.0; x<maxSample;x+= gridLine_step) {                
                 double y = this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample));
-                if (false) {
-                    // make the grid-lines pixel boundary aligned.
-                    y = Math.Ceiling(y) +0.5;
-                }
+                
+                // make the grid-lines pixel boundary aligned.
+                y = Math.Ceiling(y) +0.5;
+                
                 drawingContext.DrawLine(greenPen,
                     new Point(0,y),
                     new Point(this.RenderSize.Width,y));
