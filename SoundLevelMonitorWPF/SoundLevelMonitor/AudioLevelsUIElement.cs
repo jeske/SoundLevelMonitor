@@ -71,8 +71,7 @@ namespace SoundLevelMonitorWPF
             pens.Add(new Pen(Brushes.HotPink, 1.0f));
             pens.Add(new Pen(Brushes.Yellow, 1.0f));
             pens.Add(new Pen(Brushes.Lavender, 1.0f));
-            pens.Add(new Pen(Brushes.Cyan, 1.0f));
-            pens.Add(new Pen(Brushes.Maroon, 1.0f));
+            pens.Add(new Pen(Brushes.Cyan, 1.0f));            
 
 
             foreach (var pen in pens) {
