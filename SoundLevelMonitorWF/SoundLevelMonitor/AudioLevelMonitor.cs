@@ -71,56 +71,54 @@ namespace SoundLevelMonitor
             }
             return outputDict;
         }
-
-        AudioSessionManager2 sessionManager;
+       
         public void CheckAudioLevels() {
             lock (this) {
                 var seenPids = new HashSet<string>();
                 try {
+                    using (var sessionManager = GetDefaultAudioSessionManager2(DataFlow.Render)) {
+                                    
+                        using (var sessionEnumerator = sessionManager.GetSessionEnumerator()) {
+                            foreach (var session in sessionEnumerator) {
+                                using (var audioSessionControl2 = session.QueryInterface<AudioSessionControl2>()) {
+                                    var process = audioSessionControl2.Process;
 
-                    if (sessionManager == null) {
-                        sessionManager = GetDefaultAudioSessionManager2(DataFlow.Render);
-                    }
-                
-                    using (var sessionEnumerator = sessionManager.GetSessionEnumerator()) {
-                        foreach (var session in sessionEnumerator) {
-                            using (var audioSessionControl2 = session.QueryInterface<AudioSessionControl2>()) {
-                                var process = audioSessionControl2.Process;
-
-                                string sessionid = audioSessionControl2.SessionIdentifier;
-                                int pid = audioSessionControl2.ProcessID;
-                                string name = null;
-                                name = audioSessionControl2.DisplayName;
-                                if (name == null || name == "") { name = process.MainWindowTitle; }
-                                if (name == null || name == "") { name = process.ProcessName; }
-                                if (name == null || name == "") { name = "--unnamed--"; }
+                                    string sessionid = audioSessionControl2.SessionIdentifier;
+                                    int pid = audioSessionControl2.ProcessID;
+                                    string name = audioSessionControl2.DisplayName;                                    
+                                    if (process != null) {
+                                        if (name == "") { name = process.MainWindowTitle; }
+                                        if (name == "") { name = process.ProcessName; }
+                                    }
+                                    if (name == "") { name = "--unnamed--"; }
                                 
-                                var sessionInfo = new SampleInfo();
-                                sessionInfo.sessionId = sessionid;
-                                sessionInfo.pid = pid;
-                                sessionInfo.SessionName = name;
+                                    var sessionInfo = new SampleInfo();
+                                    sessionInfo.sessionId = sessionid;
+                                    sessionInfo.pid = pid;
+                                    sessionInfo.SessionName = name;
 
-                                sessionIdToInfo[sessionid] = sessionInfo;
+                                    sessionIdToInfo[sessionid] = sessionInfo;
                                 
-                                using (var audioMeterInformation = session.QueryInterface<AudioMeterInformation>()) {
-                                    var value = audioMeterInformation.GetPeakValue();
-                                    if (value != 0) {
-                                        if (process != null) {
-                                            seenPids.Add(sessionid);
-                                            List<double> samples;
-                                            if (!sessionIdToAudioSamples.TryGetValue(sessionid, out samples)) {
-                                                samples = new List<double>();
-                                                sessionIdToAudioSamples[sessionid] = samples;
+                                    using (var audioMeterInformation = session.QueryInterface<AudioMeterInformation>()) {
+                                        var value = audioMeterInformation.GetPeakValue();
+                                        if (value != 0) {
+                                            if (process != null) {
+                                                seenPids.Add(sessionid);
+                                                List<double> samples;
+                                                if (!sessionIdToAudioSamples.TryGetValue(sessionid, out samples)) {
+                                                    samples = new List<double>();
+                                                    sessionIdToAudioSamples[sessionid] = samples;
+                                                }
+                                                var val = audioMeterInformation.GetPeakValue();
+                                                samples.Add(val);
+                                                truncateSamples(samples);
+                                                /* Console.WriteLine("{0} {1} {2} {3}",
+                                                    audioSessionControl2.ProcessID,
+                                                    process.ProcessName,
+                                                    process.MainWindowTitle,
+                                                    val);
+                                                    */
                                             }
-                                            var val = audioMeterInformation.GetPeakValue();
-                                            samples.Add(val);
-                                            truncateSamples(samples);
-                                            /* Console.WriteLine("{0} {1} {2} {3}",
-                                                audioSessionControl2.ProcessID,
-                                                process.ProcessName,
-                                                process.MainWindowTitle,
-                                                val);
-                                                */
                                         }
                                     }
                                 }

@@ -117,7 +117,9 @@ namespace SoundLevelMonitorWPF
             // draw gridlines every 0.1
                        
             for(double x=0.0; x<maxSample;x+=0.01) {
-                var y = this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample));
+                // make sure the gridlines fall exactly on 0.5 boundaries, so they are crisp one pixel lines
+                double y = Math.Ceiling(this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample)));
+                y+=0.5;
                 drawingContext.DrawLine(greenPen,
                     new Point(0,y),
                     new Point(this.RenderSize.Width,y));
