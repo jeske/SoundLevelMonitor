@@ -63,12 +63,21 @@ namespace SoundLevelMonitor
             // g.FillRectangle(Brushes.Black,this.Bounds);   
             g.FillRectangle(Brushes.Black,0,0,Size.Width,Size.Height);
 
+            double gridLine_step = 0.01;
+            double gridLine_log = gridLine_step * 2;
+
             // draw gridlines every 0.1
-            for (double x = 0.0; x < maxSample; x += 0.01) {
+            for (double x = 0.0; x < maxSample; x += gridLine_step) {
                 int y = (int)(Size.Height - (Size.Height * (x / maxSample)));
                 g.DrawLine(greenPen,
                     new Point(0, y),
                     new Point(Size.Width, y));
+
+                // logarithmic gridlines
+                if (x >= gridLine_log) {
+                    gridLine_step *= 2;
+                    gridLine_log = gridLine_step * 2;
+                }
             }
 
         }

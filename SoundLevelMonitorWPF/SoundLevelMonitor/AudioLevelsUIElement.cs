@@ -114,15 +114,24 @@ namespace SoundLevelMonitorWPF
             drawingContext.DrawRectangle(Brushes.Black, new Pen(),
                 new Rect(this.RenderSize));
 
-            // draw gridlines every 0.1
-                       
-            for(double x=0.0; x<maxSample;x+=0.01) {
-                // make sure the gridlines fall exactly on 0.5 boundaries, so they are crisp one pixel lines
-                double y = Math.Ceiling(this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample)));
-                y+=0.5;
+            double gridLine_step = 0.01;
+            double gridLine_log = gridLine_step * 2;
+            
+            for(double x=0.0; x<maxSample;x+= gridLine_step) {                
+                double y = this.RenderSize.Height - (this.RenderSize.Height * (x/maxSample));
+                if (false) {
+                    // make the grid-lines pixel boundary aligned.
+                    y = Math.Ceiling(y) +0.5;
+                }
                 drawingContext.DrawLine(greenPen,
                     new Point(0,y),
                     new Point(this.RenderSize.Width,y));
+
+                // logarithmic gridlines
+                if (x >= gridLine_log) {
+                    gridLine_step *= 2;
+                    gridLine_log = gridLine_step * 2;
+                }
             }
 
         }
